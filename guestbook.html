@@ -9,6 +9,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <link rel="icon" href="https://raw.githubusercontent.com/jaeeun0238/V/56f46d64a199b0ae3d29fc1b47950f46b2f854de/favicon.ico"/>
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/jaeeun0238/V/56f46d64a199b0ae3d29fc1b47950f46b2f854de/favicon.ico"/>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
 
@@ -16,9 +18,7 @@
             font-family: 'Gowun Dodum', sans-serif;
         }
 
-        html {
-            font-size: 11px;
-        }
+        
 
         .header1 {
             background-color: white;
@@ -28,53 +28,15 @@
         .box {
             background-color: beige;
             height: 100vh;
-            margin: 0px
-            
+            margin: 0px;
         }
 
-        body{
+        body {
             background-color: beige;
         }
 
         .icon {
             height: 50px;
-        }
-
-        .main {
-
-            color: black;
-
-            background-image: url('https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FWh37Q%2FbtsKqB8bSAu%2FUPXn0Vc13R4TM1D1HNmLRK%2Fimg.png');
-            background-position: center;
-            background-size: cover;
-
-            /* position: absolute; */
-            /* 절대 위치 */
-            /* top: 100px; */
-            /* 상단에서 약간 띄움 */
-            /* left: 100px; */
-            /* 왼쪽에서 약간 띄움 */
-            width: 200px;
-            /* 원하는 크기로 설정 */
-            height: 200px;
-            /* 원하는 크기로 설정 */
-            margin: 0px auto 0px auto;
-        }
-
-        .mytext {
-            margin: left;
-        }
-
-
-
-        .mytitle>button {
-            width: 150px;
-            height: 50px;
-            background-color: transparent;
-            color: white;
-            border: 1px solid white;
-            border-radius: 5px;
-            margin-top: 20px;
         }
 
         .mypostingbox {
@@ -86,14 +48,6 @@
             margin-bottom: 50px;
             margin-top: 70px;
             background-color: white;
-        }
-
-        }
-
-
-
-        .mybtn>button {
-            margin-right: 5px;
         }
 
         #cardimage {
@@ -119,15 +73,9 @@
         }
     </style>
     <script type="module">
-        // Firebase SDK 라이브러리 가져오기 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-        import { collection, addDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-        import { getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-
-        // Firebase 구성 정보 설정
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
             apiKey: "AIzaSyA7V0ut2g85D5SDrKR2h7KsDXLR3pbI7bM",
             authDomain: "sparta-f3e1e.firebaseapp.com",
@@ -138,62 +86,82 @@
             measurementId: "G-QKWNLW54LN"
         };
 
-        // Firebase 인스턴스 초기화
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const deletePassword = "1234"; // 원하는 비밀번호 설정
 
+        
+        $(document).ready(async function () {
+            $("#postingbtn").click(async function () {
+                let image = $('#image').val();
+                let nickname = $('#nickname').val();
+                let content = $('#content').val();
 
-        $("#postingbtn").click(async function () {
-            let image = $('#image').val();
-            let nickname = $('#nickname').val();
-            let content = $('#content').val();
+                let doc = {
+                    'image': image,
+                    'nickname': nickname,
+                    'content': content
+                };
 
-            let doc = {
-                'image': image,
-                'nickname': nickname,
-                'content': content
-            };
+                await addDoc(collection(db, "guestbook"), doc);
+                alert('저장 완료');
+                window.location.reload();
+            });
 
-            await addDoc(collection(db, "guestbook"), doc);
-            alert('저장 완료');
-            window.location.reload();
-        })
+            let docs = await getDocs(collection(db, "guestbook"));
+            docs.forEach((docdata) => {
+                let row = docdata.data();
+                const docId = docdata.id;
 
+                let image = row['image'];
+                let nickname = row['nickname'];
+                let content = row['content'];
 
-
-        let docs = await getDocs(collection(db, "guestbook"));
-        docs.forEach((doc) => {
-            let row = doc.data();
-
-            let image = row['image'];
-            let nickname = row['nickname'];
-            let content = row['content'];
-
-
-            let temp_html = `
-            <div>
-                <div class="card">
-                    <img src="${image}" id = "cardimage"
-                        class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">${nickname}</h5>
-                            <p class="card-text">${content}</p>
+                let $temp_html = $(`
+                    <div data-id="${docId}">
+                        <div class="card">
+                            <img src="${image}" id="cardimage" class="card-img-top" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title">${nickname}</h5>
+                                <p class="card-text">${content}</p>
+                            </div>
                         </div>
-                </div>
-            </div>`;
+                        <button class="dbt">delete</button>
+                    </div>
+                `);
 
-            $('#card').append(temp_html);
+                $temp_html.find('.dbt').click(function () {
+                    $('#passwordModal').modal('show');
+                    $('#confirmDelete').data('docId', docId);
+                });
+
+                $('#card').append($temp_html);
+            });
+
+            $("#confirmDelete").click(async function () {
+                const enteredPassword = $("#deletePassword").val();
+                const docId = $(this).data('docId');
+
+                if (enteredPassword === deletePassword) {
+                    await deleteDoc(doc(db, "guestbook", docId));
+                    alert("삭제가 완료되었습니다.");
+                    window.location.reload();
+                } else {
+                    alert("비밀번호가 일치하지 않습니다.");
+                }
+                $("#passwordModal").modal("hide");
+                $("#deletePassword").val("");
+            });
         });
     </script>
-
 </head>
 
 <body>
     <div class="header1">
         <header class="p-3 mb-4 border-bottom">
             <div class="container">
-                 <div class="d-flex align-items-center justify-content-center justify-content-lg-start">
-                    <a href="https://ohhyeseong.github.io/new_teampage/teamV" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-start">
+                    <a href="./header.html" class="d-flex align-items-center mb-2 mb-lg-0 link-body-emphasis text-decoration-none">
                         <img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FkAVk5%2FbtsKpE51fsr%2FFTOcgGxIKe3whI0lGfuj7K%2Fimg.png" class="icon">
                         <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap">
                             <use xlink:href="#bootstrap"></use>
@@ -203,41 +171,64 @@
                     <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
     
     
-                        <li><a href="https://ohhyeseong.github.io/new_teampage/teamV" class="nav-link px-2 link-body-emphasis">TEAM</a></li>
-                        <li><a href="https://ohhyeseong.github.io/sprta_team_page/memberpagefinal.html" class="nav-link px-2 link-body-emphasis">MEMBER</a></li>
-                        <li><a href="https://ohhyeseong.github.io/sprta_guestbook/guestbook.html" class="nav-link px-2 link-body-emphasis">GUESTBOOK</a></li>
+                        <li><a href="./header.html" class="nav-link px-2 link-body-emphasis">TEAM</a></li>
+                        <li><a href="./memberpagefinal.html" class="nav-link px-2 link-body-emphasis">MEMBER</a></li>
+                        <li><a href="./guestbook.html" class="nav-link px-2 link-body-emphasis">GUESTBOOK</a></li>
                     </ul>
                 </div>
             </div>
         </header>
     </div>
 
-    <body>
-        <div class = "box">
-            <div class="mypostingbox" id="postingbox">
-                <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="image" placeholder="앨범 이미지">
-                    <label for="floatingInput">이미지 주소</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="nickname" placeholder="앨범 내용">
-                    <label for="floatingInput">닉네임</label>
-                </div>
-                <div class="form-floating mb-3">
-                    <input type="email" class="form-control" id="content" placeholder="앨범 날짜">
-                    <label for="floatingInput">내용</label>
-                </div>
-                <div class="mybtn">
-                    <button id="postingbtn" type="button" class="testbtn">기록하기</button>
-                </div>
+    <div class="box">
+        <div class="mypostingbox" id="postingbox">
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="image" placeholder="앨범 이미지">
+                <label for="floatingInput">이미지 주소</label>
             </div>
-            <div class="mycards">
-                <div id="card" class="row row-cols-sm-2 row-cols-md-3 g-4 row-cols-lg-4">
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="nickname" placeholder="앨범 내용">
+                <label for="floatingInput">닉네임</label>
+            </div>
+            <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="content" placeholder="앨범 날짜">
+                <label for="floatingInput">내용</label>
+            </div>
+            <div class="mybtn">
+                <button id="postingbtn" type="button" class="testbtn">기록하기</button>
+            </div>
+        </div>
+        <div class="mycards">
+            <div id="card" class="row row-cols-sm-2 row-cols-md-3 g-4 row-cols-lg-4"></div>
+        </div>
+    </div>
 
+    <!-- Password Modal -->
+    <div class="modal fade" id="passwordModal" tabindex="-1" aria-labelledby="passwordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passwordModalLabel">비밀번호 확인</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-floating">
+                        <input type="password" class="form-control" id="deletePassword" placeholder="비밀번호">
+                        <label for="deletePassword">비밀번호</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="confirmDelete">삭제</button>
                 </div>
             </div>
         </div>
-    </body>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        crossorigin="anonymous"></script>
 </body>
 
 </html>
